@@ -22,3 +22,4 @@ class Model():
 			pass
 
 	def train(self):
+		pass

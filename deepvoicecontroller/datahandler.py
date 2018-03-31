@@ -10,7 +10,7 @@ class DataHandler():
     """
 
     def __init__(self, ratio=[0.7, 0.15, 0.15]):
-    	self.config = Config()
+        self.config = Config()
         # DataX : Preprocessed Audio
         # DataY : Class
         self.dataX = []
@@ -26,7 +26,7 @@ class DataHandler():
         assert(len(self.ind2word)==CLASSES)
 
     # static
-    def get_instance():
+    def get_instance(self):
     	pass
     	
     def getClasses(self):

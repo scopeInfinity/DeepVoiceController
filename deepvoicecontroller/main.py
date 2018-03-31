@@ -3,6 +3,7 @@ import sys
 
 from config import Config
 from datahandler import DataHandler
+from model import Model
 
 def main():
     config = Config()
