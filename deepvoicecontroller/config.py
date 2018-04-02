@@ -2,7 +2,7 @@ import os
 
 class Config():
     def __init__(self):
-        self.HOME = '/home/scopeinfinity/OSS/DeepVoiceController/deepvoicecontroller'
+        self.HOME = '/home/gagan.cs14/DeepVoiceController/deepvoicecontroller'
 
     def getHome(self):
         return self.HOME

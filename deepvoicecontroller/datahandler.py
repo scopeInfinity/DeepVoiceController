@@ -1,6 +1,10 @@
 from config import Config
 from audio import load_and_preprocess_audio
-CLASSES = 5
+import os
+import random
+import numpy as np
+
+CLASSES = 30
 
 class DataHandler():
     """
@@ -9,7 +13,7 @@ class DataHandler():
     @ratio ratio of train, validation, test dataset
     """
 
-    def __init__(self, ratio=[0.7, 0.15, 0.15]):
+    def __init__(self, ratio=[0.85, 0.0, 0.15]):
         self.config = Config()
         # DataX : Preprocessed Audio
         # DataY : Class
@@ -33,14 +37,30 @@ class DataHandler():
         return CLASSES
 
     def load(self):
+        print(str("abcd"))
         data_dir = self.config.getDatasetDir()
+        # MX_PERCLASS = 100
         # TODO : Load Data and call newDataElement
-        pass
+        list_dir=os.listdir(data_dir)
+        for classno, directory in enumerate(list_dir):
+            directory_path=os.path.join(data_dir,directory)
+            if os.path.isdir(directory_path):
+                if directory[0]!="_":
+                    files=os.listdir(directory_path)
+                    for i,file in enumerate(files):
+                        self.newDataElement(os.path.join(directory_path,file),directory)
+                        print("Class Number %d, %.3f%% loaded"%(classno,(i*100.0/len(files))))
+        
+        random.seed(17)
+        train = zip(self.dataX,self.dataY)
+        np.random.shuffle(train)
+        [self.dataX, self.dataY] = [list(t) for t in zip(*train)]
 
-        self.dataskip = [0]                                             		# Train
+        
+        self.dataskip = [0]                                                     # Train
         self.dataskip.append(int(self.ratio[0]*len(self.dataX)))                # Validation
         self.dataskip.append(int((self.ratio[0]+self.ratio[1])*len(self.dataX)))# Test
-        self.dataskip.append(len(self.dataX))                            		# Full Dataset
+        self.dataskip.append(len(self.dataX))                                   # Full Dataset
 
     def newDataElement(self, audio_filename, word):
         x = load_and_preprocess_audio(audio_filename)
@@ -48,14 +68,18 @@ class DataHandler():
             self.word2ind[word] = len(self.ind2word)
             self.ind2word.append(word)
         y = self.word2ind[word]
+        array_y=[0]*30
+        array_y[y]=1
         self.dataX.append(x)
-        self.dataX.append(y)
+        self.dataY.append(array_y)
+        # print(self.dataX)
 
     
 
     def getSplitHalf(self, indx):
         content = [self.dataX[self.dataskip[indx]:self.dataskip[indx+1]], self.dataY[self.dataskip[indx]:self.dataskip[indx+1]]]
         print("Dataset for [{:7}] : {:3}".format(["Train","Validation","Test"][indx], len(content)))
+        return content
 
     def getTrainSplit(self):
         return self.getSplitHalf(0)
