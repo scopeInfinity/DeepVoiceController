@@ -34,11 +34,12 @@ class Model():
 			              metrics=['accuracy'])
 
 
-
 	def load_model(self):
 		if os.path.exists(self.fname):
 			# TODO : Load weights from self.fname
-			pass
+			print("Loading Weights from %s"%self.fname)
+			self.model.load_weights(self.fname)
+			print("Weights Loaded")
 
 	def train(self):
 		datah=DataHandler()
@@ -58,3 +59,13 @@ class Model():
 					verbose=2,
 					callbacks=[saved])
 
+	def predict(self,file_names, classes_names):
+		from audio import load_and_preprocess_audio
+		x = []
+		for fname in file_names:
+			x.append( load_and_preprocess_audio(fname) )	
+		y=self.model.predict(np.array(x))
+		results = []
+		for _y in y:
+			results.append(classes_names[ np.argmax(_y) ] )
+		return results
