@@ -4,6 +4,7 @@ import sys
 from config import Config
 from datahandler import DataHandler
 from model import Model
+from word_parser import word_parser
 
 def main():
     config = Config()
@@ -12,7 +13,7 @@ def main():
         and test while preprocessing', action='store_true')
     parser.add_argument('-t', '--train', help='Train Model', action='store_true')
     parser.add_argument('-wp', '--word-parser', help='Listen to microphone parse the word', action='store_true')
-    parser.add_argument('--predict', help='Predict Audiofile', nargs='+')
+    parser.add_argument('-p', '--predict', help='Predict Audiofile', nargs='+')
    
     args = parser.parse_args()
     if args.test_dataset:
@@ -28,6 +29,8 @@ def main():
         result = model.predict(args.predict, datahandler.getClasses())
         for fname, res in zip(args.predict, result):
             print("%s\t%s"%(fname,res)) 
+    if args.word_parser:
+        word_parser()
 
 if __name__ == '__main__':
     main()

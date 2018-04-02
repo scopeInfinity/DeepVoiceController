@@ -15,17 +15,19 @@ class Model():
 	"""Model Voice to Text Classification"""
 	def __init__(self):
 		self.config = Config()
-		self.fname = self.config.getModelFname()
 		self.build_model()
 		self.load_model()
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(TimeDistributed( Dense(1000),
-					 					input_shape=(timestamps,frequencies)))
-		self.model.add(LSTM(1000,
-						 activation='tanh',  
-						 kernel_initializer='glorot_uniform', 
+		self.model.add(LSTM(128,
+						 dropout=0.2,
+						 recurrent_dropout=0.2,
+						 return_sequences=True,
+						 input_shape=(timestamps,frequencies)))
+		self.model.add(LSTM(64,
+						 dropout=0.2,
+						 recurrent_dropout=0.2,
 						 return_sequences=False))
 		self.model.add(Dense(30, 
 						 activation='softmax'))
@@ -35,10 +37,11 @@ class Model():
 
 
 	def load_model(self):
-		if os.path.exists(self.fname):
-			# TODO : Load weights from self.fname
-			print("Loading Weights from %s"%self.fname)
-			self.model.load_weights(self.fname)
+		fname,self.start_epoch = self.config.getModelFname()
+		if fname is not None and os.path.exists(fname):
+			# TODO : Load weights from fname
+			print("Loading Weights from %s"%fname)
+			self.model.load_weights(fname)
 			print("Weights Loaded")
 
 	def train(self):
@@ -53,9 +56,10 @@ class Model():
 		saved = ModelCheckpoint("Weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5", monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)			
 		self.model.fit(np.array(train_data[0]), 
 					train_data[1],
+					initial_epoch=self.start_epoch,
 					validation_split=0.8,
 					epochs=1000, 
-					batch_size=200,
+					batch_size=50,
 					verbose=2,
 					callbacks=[saved])
 
