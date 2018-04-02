@@ -3,10 +3,10 @@
 Application to control linux OS using Deep Learning 
 
 #### Todo
-- [ ] main.py
+- [X] main.py
 - [ ] Audio Handler 
 - [ ] Text Parser
 - [ ] Action Executor
 - [ ] DNN Model
-- [ ] Model Preprocessor
-- [ ] Dataset Handler
+- [X] Model Preprocessor
+- [X] Dataset Handler
