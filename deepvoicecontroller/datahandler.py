@@ -13,7 +13,7 @@ class DataHandler():
     @ratio ratio of train, validation, test dataset
     """
 
-    def __init__(self, ratio=[0.85, 0.0, 0.15]):
+    def __init__(self, ratio=[0.85, 0.0, 0.15], noActualLoad = False):
         self.config = Config()
         # DataX : Preprocessed Audio
         # DataY : Class
@@ -25,7 +25,7 @@ class DataHandler():
         self.ratio = ratio
         assert(len(ratio)==3)
         assert(ratio[0]+ratio[1]+ratio[2]==1.0)
-        self.load()
+        self.load(noActualLoad)
         print("Classes for Words. Found {}, Expected {}".format(len(self.ind2word), CLASSES))
         assert(len(self.ind2word)==CLASSES)
 
@@ -34,10 +34,9 @@ class DataHandler():
     	pass
     	
     def getClasses(self):
-        return CLASSES
+        return self.ind2word
 
-    def load(self):
-        print(str("abcd"))
+    def load(self, noActualLoad = False):
         data_dir = self.config.getDatasetDir()
         # MX_PERCLASS = 100
         # TODO : Load Data and call newDataElement
@@ -48,7 +47,7 @@ class DataHandler():
                 if directory[0]!="_":
                     files=os.listdir(directory_path)
                     for i,file in enumerate(files):
-                        self.newDataElement(os.path.join(directory_path,file),directory)
+                        self.newDataElement(os.path.join(directory_path,file),directory, noActualLoad)
                         print("Class Number %d, %.3f%% loaded"%(classno,(i*100.0/len(files))))
         
         random.seed(17)
@@ -62,8 +61,12 @@ class DataHandler():
         self.dataskip.append(int((self.ratio[0]+self.ratio[1])*len(self.dataX)))# Test
         self.dataskip.append(len(self.dataX))                                   # Full Dataset
 
-    def newDataElement(self, audio_filename, word):
-        x = load_and_preprocess_audio(audio_filename)
+    def newDataElement(self, audio_filename, word, noActualLoad = False):
+        if noActualLoad:
+            # Loading Dummy Data
+            x = None
+        else:
+            x = load_and_preprocess_audio(audio_filename)
         if word not in self.ind2word:
             self.word2ind[word] = len(self.ind2word)
             self.ind2word.append(word)
