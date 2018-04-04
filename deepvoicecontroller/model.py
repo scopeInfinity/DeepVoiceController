@@ -6,6 +6,10 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Activation
 from keras.layers import LSTM 
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Flatten
+from keras.layers import Dropout
 from keras.callbacks import ModelCheckpoint
 from keras.layers import TimeDistributed
 from audio import no_of_mels as frequencies
@@ -20,15 +24,20 @@ class Model():
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(LSTM(128,
-						 dropout=0.2,
-						 recurrent_dropout=0.2,
-						 return_sequences=True,
-						 input_shape=(timestamps,frequencies)))
-		self.model.add(LSTM(64,
-						 dropout=0.2,
-						 recurrent_dropout=0.2,
-						 return_sequences=False))
+		self.model.add(Conv2D(64, kernel_size=(3, 3),
+		                 activation='relu',
+		                 input_shape=(timestamps,frequencies,1)))
+		self.model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.model.add(Dropout(0.2))
+		self.model.add(Conv2D(32, (3, 3), activation='relu'))
+		self.model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.model.add(Dropout(0.2))
+		# self.model.add(Conv2D(64, (3, 3), activation='relu'))
+		# self.model.add(MaxPooling2D(pool_size=(2, 2)))
+		# self.model.add(Dropout(0.25))
+		self.model.add(Flatten())
+		self.model.add(Dense(64, activation='relu'))
+		self.model.add(Dropout(0.5))
 		self.model.add(Dense(30, 
 						 activation='softmax'))
 		self.model.compile(optimizer='rmsprop', 
