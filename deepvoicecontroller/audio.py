@@ -36,3 +36,53 @@ def load_and_preprocess_audio(audio_filename):
         # exit()
     assert msg_width == msg.shape[1]
     return msg
+
+def capture_audio(callback):
+    import pyaudio
+    import wave as wv
+    from array import array
+
+    FORMAT=pyaudio.paInt16
+    RATE=16000
+    CHUNK=1024
+    COUNTCHUNK= (RATE+CHUNK-1)/CHUNK
+    RECORD_SECONDS=1
+    FILE_NAME="/tmp/mic_rec.wav"
+
+    audio=pyaudio.PyAudio()
+
+    stream=audio.open(format=FORMAT,
+                      rate=RATE,
+                      channels=1,
+                      input=True,
+                      frames_per_buffer=CHUNK)
+
+    #starting recording
+    wave=[]
+    callback_free = [True]
+    print("started")
+    while True:
+        data=stream.read(CHUNK)
+        data_chunk=array('h',data)
+        vol=max(data_chunk)
+        wave.append(data)
+        if len(wave) > COUNTCHUNK:
+            wave.pop(0)
+        if(vol>=1500):
+            if len(wave) == COUNTCHUNK:
+                #writing to file
+                wavfile=wv.open(FILE_NAME,'wb')
+                wavfile.setnchannels(1)
+                wavfile.setsampwidth(audio.get_sample_size(FORMAT))
+                wavfile.setframerate(RATE)
+                wavfile.writeframes(b''.join(wave))
+                wavfile.close()
+                if callback_free[0]:
+                    callback_free[0]=False
+                    callback(callback_free,FILE_NAME)
+            print("Something is said")
+        else:
+            callback(None,None)
+            print("Nothing is said")
+        print("\n")
+ 
