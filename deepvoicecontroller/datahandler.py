@@ -4,7 +4,7 @@ import os
 import random
 import numpy as np
 
-CLASSES = 30
+CLASSES = 9
 
 class DataHandler():
     """
@@ -21,11 +21,16 @@ class DataHandler():
         self.dataY = []
 
         self.word2ind = dict()
-        self.ind2word = []
+        self.ind2word = ['stop', 'go', 'down', 'left', 'yes', 'right', 'up', 'no', 'bed']
+        for i,w in enumerate(self.ind2word):
+            self.word2ind[w]=i
+        assert len(self.ind2word) == CLASSES
+        
         self.ratio = ratio
         assert(len(ratio)==3)
         assert(ratio[0]+ratio[1]+ratio[2]==1.0)
-        self.load(noActualLoad)
+        if not noActualLoad:
+            self.load()
         print("Classes for Words. Found {}, Expected {}".format(len(self.ind2word), CLASSES))
         assert(len(self.ind2word)==CLASSES)
 
@@ -36,18 +41,22 @@ class DataHandler():
     def getClasses(self):
         return self.ind2word
 
-    def load(self, noActualLoad = False):
+    def load(self):
         data_dir = self.config.getDatasetDir()
         # MX_PERCLASS = 100
         # TODO : Load Data and call newDataElement
         list_dir=os.listdir(data_dir)
         for classno, directory in enumerate(list_dir):
+            if directory not in self.getClasses():
+                continue
             directory_path=os.path.join(data_dir,directory)
             if os.path.isdir(directory_path):
                 if directory[0]!="_":
                     files=os.listdir(directory_path)
                     for i,file in enumerate(files):
-                        self.newDataElement(os.path.join(directory_path,file),directory, noActualLoad)
+                        # if i == 100:
+                        #     break
+                        self.newDataElement(os.path.join(directory_path,file),directory)
                         print("Class Number %d, %.3f%% loaded"%(classno,(i*100.0/len(files))))
         
         random.seed(17)
@@ -61,15 +70,8 @@ class DataHandler():
         self.dataskip.append(int((self.ratio[0]+self.ratio[1])*len(self.dataX)))# Test
         self.dataskip.append(len(self.dataX))                                   # Full Dataset
 
-    def newDataElement(self, audio_filename, word, noActualLoad = False):
-        if noActualLoad:
-            # Loading Dummy Data
-            x = None
-        else:
-            x = load_and_preprocess_audio(audio_filename)
-        if word not in self.ind2word:
-            self.word2ind[word] = len(self.ind2word)
-            self.ind2word.append(word)
+    def newDataElement(self, audio_filename, word):
+        x = load_and_preprocess_audio(audio_filename)
         y = self.word2ind[word]
         array_y=[0]*30
         array_y[y]=1

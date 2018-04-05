@@ -1,7 +1,7 @@
 from scipy.io import wavfile
 import numpy as np
 import librosa
-
+import time
 
 no_of_mels = 64
 msg_width = 64
@@ -61,6 +61,8 @@ def capture_audio(callback):
     wave=[]
     callback_free = [True]
     print("started")
+    last = time.time()
+    
     while True:
         data=stream.read(CHUNK)
         data_chunk=array('h',data)
@@ -68,7 +70,10 @@ def capture_audio(callback):
         wave.append(data)
         if len(wave) > COUNTCHUNK:
             wave.pop(0)
-        if(vol>=1500):
+
+        # if(vol>=1500 or True):
+        if(time.time()-last>0.1):
+            last = time.time()
             if len(wave) == COUNTCHUNK:
                 #writing to file
                 wavfile=wv.open(FILE_NAME,'wb')
@@ -80,9 +85,10 @@ def capture_audio(callback):
                 if callback_free[0]:
                     callback_free[0]=False
                     callback(callback_free,FILE_NAME)
-            print("Something is said")
+                    # print("Something is said")
         else:
-            callback(None,None)
-            print("Nothing is said")
-        print("\n")
+            pass
+            # callback(None,None)
+            # print("Nothing is said")
+        # print("\n")
  

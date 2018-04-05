@@ -26,9 +26,9 @@ def main():
     if args.predict:
         model=Model()
         datahandler = DataHandler(noActualLoad = True)
-        result = model.predict(args.predict, datahandler.getClasses())
-        for fname, res in zip(args.predict, result):
-            print("%s\t%s"%(fname,res)) 
+        result_prob = model.predict(args.predict, datahandler.getClasses())
+        for fname, rp in zip(args.predict, result_prob):
+            print("%s\t%s\twith Probabity %f"%(fname,rp[0],rp[1])) 
     if args.word_parser:
         word_parser()
 

@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Activation
 from keras.layers import LSTM 
+from keras.layers import Flatten
 from keras.callbacks import ModelCheckpoint
 from keras.layers import TimeDistributed
 from audio import no_of_mels as frequencies
@@ -28,8 +29,9 @@ class Model():
 		self.model.add(LSTM(64,
 						 dropout=0.2,
 						 recurrent_dropout=0.2,
-						 return_sequences=False))
-		self.model.add(Dense(30, 
+						 return_sequences=True))
+		self.model.add(Flatten())
+                self.model.add(Dense(30, 
 						 activation='softmax'))
 		self.model.compile(optimizer='rmsprop', 
 			              loss='categorical_crossentropy',
@@ -58,7 +60,7 @@ class Model():
 					train_data[1],
 					initial_epoch=self.start_epoch,
 					validation_split=0.8,
-					epochs=1000, 
+					epochs=10000, 
 					batch_size=50,
 					verbose=2,
 					callbacks=[saved])
@@ -71,5 +73,11 @@ class Model():
 		y=self.model.predict(np.array(x))
 		results = []
 		for _y in y:
-			results.append(classes_names[ np.argmax(_y) ] )
+			_ind = np.argmax(_y)
+			_max = np.max(_y)
+			assert _max == _y[_ind]
+			assert abs(np.sum(_y) - 1.0)<1e-5
+
+			results.append((classes_names[_ind  ],_max) )
+
 		return results
