@@ -34,7 +34,7 @@ def newword(result_whole, final_callback):
     
     # if len(lastrecords) == 5:
     best_word = max(current_word_prob, key=current_word_prob.get)
-    if current_word_prob[best_word]<0.25:
+    if current_word_prob[best_word]<0.22:
         return
     # print(">>>>>>>>>>>>>>>>>>>>>> New Word : %s\tProb: %f"%(word,prob))
     now = time.time()
