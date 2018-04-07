@@ -93,7 +93,7 @@ class Model():
 		from audio import load_and_preprocess_audio
 		x = []
 		for fname in file_names:
-			x.append( load_and_preprocess_audio(fname) )	
+			x.append( load_and_preprocess_audio(fname, True) )	
 		y=self.model.predict(np.array(x))
 		results = []
 		for _y in y:

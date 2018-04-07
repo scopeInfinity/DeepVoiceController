@@ -26,7 +26,7 @@ class EventHandler():
  		print("Scroll, Mode UP : "+str(up))
  		if up:
  			pyautogui.press('pgup')
- 		else
+ 		else:
  			pyautogui.press('pgdn')
 
  	def command_key(self,key):
@@ -38,7 +38,7 @@ class EventHandler():
 			self.active = True
 			print("Marvin Active")
 			self.clean()
-		if self.active:
+		elif self.active:
 			self.list.append(word)
 			if self.list == ["tree","stop"] or self.list == ["three","stop"]:
 				self.command_sleep()
@@ -63,6 +63,7 @@ class EventHandler():
 				self.clean()
 			if self.list == ["wow"]:
 				self.command_key("prtscr")
+				self.clean()
 			if self.list == ["stop"]:
 				self.active = False
 				self.clean()
