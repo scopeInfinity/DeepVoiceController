@@ -4,7 +4,7 @@ import os
 import random
 import numpy as np
 
-CLASSES = 9
+CLASSES = 30
 
 class DataHandler():
     """
@@ -13,7 +13,7 @@ class DataHandler():
     @ratio ratio of train, validation, test dataset
     """
 
-    def __init__(self, ratio=[0.85, 0.0, 0.15], noActualLoad = False):
+    def __init__(self, ratio=[0.70, 0.15, 0.15], noActualLoad = False):
         self.config = Config()
         # DataX : Preprocessed Audio
         # DataY : Class
@@ -21,7 +21,7 @@ class DataHandler():
         self.dataY = []
 
         self.word2ind = dict()
-        self.ind2word = ['stop', 'go', 'down', 'left', 'yes', 'right', 'up', 'no', 'bed']
+        self.ind2word = ["bed","bird","cat","dog","down","eight","five","four","go","happy","house","left","marvin","nine","no","off","on","one","right","seven","sheila","six","stop","three","tree","two","up","wow","yes","zero"]
         for i,w in enumerate(self.ind2word):
             self.word2ind[w]=i
         assert len(self.ind2word) == CLASSES
@@ -73,13 +73,12 @@ class DataHandler():
     def newDataElement(self, audio_filename, word):
         x = load_and_preprocess_audio(audio_filename)
         y = self.word2ind[word]
-        array_y=[0]*30
+        array_y=[0]*CLASSES
         array_y[y]=1
-        self.dataX.append(x)
-        self.dataY.append(array_y)
+        self.dataX.extend(x)
+        for i in range(len(x)):
+            self.dataY.append(array_y)
         # print(self.dataX)
-
-    
 
     def getSplitHalf(self, indx):
         content = [self.dataX[self.dataskip[indx]:self.dataskip[indx+1]], self.dataY[self.dataskip[indx]:self.dataskip[indx+1]]]

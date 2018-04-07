@@ -11,6 +11,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-td', '--test-dataset', help='Walk through dataset \
         and test while preprocessing', action='store_true')
+    parser.add_argument('-e', '--execute', help='Execute',  action='store_true')
     parser.add_argument('-t', '--train', help='Train Model', action='store_true')
     parser.add_argument('-wp', '--word-parser', help='Listen to microphone parse the word', action='store_true')
     parser.add_argument('-p', '--predict', help='Predict Audiofile', nargs='+')
@@ -20,6 +21,10 @@ def main():
         datahandler = DataHandler()
         print("Test Passed")
         return
+    if args.execute:
+        from event_handler import EventHandler
+        eh = EventHandler()
+        word_parser(eh)
     if args.train:
         model = Model()
         model.train()

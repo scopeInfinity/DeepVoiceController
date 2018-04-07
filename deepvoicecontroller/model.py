@@ -11,6 +11,8 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers import TimeDistributed
 from audio import no_of_mels as frequencies
 from audio import msg_width as timestamps
+from keras.layers.normalization import BatchNormalization
+from datahandler import CLASSES
 
 class Model():
 	"""Model Voice to Text Classification"""
@@ -26,16 +28,18 @@ class Model():
 						 recurrent_dropout=0.2,
 						 return_sequences=True,
 						 input_shape=(timestamps,frequencies)))
+		self.model.add(BatchNormalization())
 		self.model.add(LSTM(64,
 						 dropout=0.2,
 						 recurrent_dropout=0.2,
 						 return_sequences=True))
+		self.model.add(BatchNormalization())
 		self.model.add(Flatten())
-                self.model.add(Dense(30, 
+		self.model.add(Dense(CLASSES, 
 						 activation='softmax'))
 		self.model.compile(optimizer='rmsprop', 
-			              loss='categorical_crossentropy',
-			              metrics=['accuracy'])
+						loss='categorical_crossentropy',
+						metrics=['accuracy'])
 
 
 	def load_model(self):
@@ -55,21 +59,22 @@ class Model():
 		print(train_data[1])
 		# test_data=datah.getTestSplit()
 		# validation_data=datah.getValidationSplit()
-		saved = ModelCheckpoint("Weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5", monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)			
+		saved = ModelCheckpoint("Weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5", monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
 		self.model.fit(np.array(train_data[0]), 
 					train_data[1],
 					initial_epoch=self.start_epoch,
 					validation_split=0.8,
 					epochs=10000, 
-					batch_size=50,
-					verbose=2,
+					batch_size=500,
+					verbose=1,
 					callbacks=[saved])
 
-	def predict(self,file_names, classes_names):
+
+	def predict(self,file_names, classes_names, whole = False):
 		from audio import load_and_preprocess_audio
 		x = []
 		for fname in file_names:
-			x.append( load_and_preprocess_audio(fname) )	
+			x.append( load_and_preprocess_audio(fname)[0] )	
 		y=self.model.predict(np.array(x))
 		results = []
 		for _y in y:
@@ -77,7 +82,11 @@ class Model():
 			_max = np.max(_y)
 			assert _max == _y[_ind]
 			assert abs(np.sum(_y) - 1.0)<1e-5
-
-			results.append((classes_names[_ind  ],_max) )
-
+			whole = []
+			for j in range(len(_y)):
+				whole.append((classes_names[j], _y[j] ))
+			if whole:
+				results.append(whole)
+			else:
+				results.append((classes_names[_ind  ],_max) )
 		return results
