@@ -1,13 +1,42 @@
 from scipy.io import wavfile
 import numpy as np
 import librosa
-
-
+import os
+import time
 no_of_mels = 64
 msg_width = 64
 
-def load_and_preprocess_audio(audio_filename):
+
+def give_merged_noise(my_wav,desired_wave_length):
+    # TODO :merge noise return array of wave
+    result=[my_wav]
+    noise_dir=os.path.join(getDatasetDir(),"_background_noise_")
+    # with_noise_data=os.path.join(getDatasetDir(),"_background_noise_")
+    for file_ in listdir(noise_dir):
+        sample_r, waveform = wavfile.read(os.path.join(noise_dir,file_))
+
+        if desired_wave_length > len(waveform):
+            waveform = np.pad(
+                waveform,
+                (0, desired_wave_length - len(waveform)),
+                'median'
+                )
+
+        elif len(waveform) > desired_wave_length:
+            waveform = waveform[:desired_wave_length]
+            
+        result.append( 0.6 * my_wav + 0.4 * waveform)    
+            
+        # audiolab.wavwrite(c, , fs, enc)
+    return result
+
+def load_and_preprocess_audio(audio_filename, no_expand_dims = False):
     # TODO : Preprocess Audio
+    # dir=os.path.join(self.config.getDatasetDir(),"_background_noise_")
+    # noise_file=shuffle(os.listdir(directory_path))[0]
+    # if noise_file[-3:]!="wav":
+    #     pass
+
     sample_rate = 16000
     duration_in_seconds = 1.0  
     no_of_fft = 512
@@ -35,9 +64,12 @@ def load_and_preprocess_audio(audio_filename):
     # print(np.shape(msg))
         # exit()
     assert msg_width == msg.shape[1]
+    if no_expand_dims:
+        msg = np.expand_dims(msg,axis=2)
+
     return msg
 
-def capture_audio(callback):
+def capture_audio(callback,final_callback ):
     import pyaudio
     import wave as wv
     from array import array
@@ -61,6 +93,9 @@ def capture_audio(callback):
     wave=[]
     callback_free = [True]
     print("started")
+    last = time.time()
+    lastloudsoundtime = time.time()-100000
+    
     while True:
         data=stream.read(CHUNK)
         data_chunk=array('h',data)
@@ -69,6 +104,9 @@ def capture_audio(callback):
         if len(wave) > COUNTCHUNK:
             wave.pop(0)
         if(vol>=1500):
+            lastloudsoundtime = time.time()
+        if(time.time()-last>0.05 and time.time()-lastloudsoundtime<0.8):
+            last = time.time()
             if len(wave) == COUNTCHUNK:
                 #writing to file
                 wavfile=wv.open(FILE_NAME,'wb')
@@ -79,10 +117,11 @@ def capture_audio(callback):
                 wavfile.close()
                 if callback_free[0]:
                     callback_free[0]=False
-                    callback(callback_free,FILE_NAME)
-            print("Something is said")
+                    callback(callback_free,FILE_NAME,final_callback)
+                    # print("Something is said")
         else:
-            callback(None,None)
-            print("Nothing is said")
-        print("\n")
+            pass
+            # callback(None,None)
+            # print("Nothing is said")
+        # print("\n")
  
