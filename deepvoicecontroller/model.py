@@ -10,6 +10,8 @@ from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Flatten
 from keras.layers import Dropout
+from keras.layers import ELU
+from keras.layers.normalization import BatchNormalization
 from keras.callbacks import ModelCheckpoint
 from keras.layers import TimeDistributed
 from audio import no_of_mels as frequencies
@@ -24,14 +26,29 @@ class Model():
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(Conv2D(64, kernel_size=(3, 3),
-		                 activation='relu',
-		                 input_shape=(timestamps,frequencies,1)))
+		self.model.add(Conv2D(32, kernel_size=(3, 3),
+		                 input_shape=(timestamps,frequencies,1),
+                                 data_format="channels_last"))
+		self.model.add(BatchNormalization(axis=1, mode=0))
+		self.model.add(Activation('relu'))
 		self.model.add(MaxPooling2D(pool_size=(2, 2)))
-		self.model.add(Dropout(0.2))
-		self.model.add(Conv2D(32, (3, 3), activation='relu'))
+		self.model.add(Dropout(0.3))
+		self.model.add(Conv2D(32, (3, 3)))
+		self.model.add(BatchNormalization(axis=1, mode=0))
+		self.model.add(ELU())
 		self.model.add(MaxPooling2D(pool_size=(2, 2)))
-		self.model.add(Dropout(0.2))
+		self.model.add(Dropout(0.3))
+		self.model.add(Conv2D(32, (3, 3)))
+		self.model.add(BatchNormalization(axis=1, mode=0))
+		self.model.add(ELU())
+		self.model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.model.add(Dropout(0.3))
+		self.model.add(Conv2D(32, (3, 3)))
+		self.model.add(BatchNormalization(axis=1, mode=0))
+		self.model.add(ELU())
+		self.model.add(MaxPooling2D(pool_size=(2, 2)))
+		self.model.add(Dropout(0.3))
+		
 		# self.model.add(Conv2D(64, (3, 3), activation='relu'))
 		# self.model.add(MaxPooling2D(pool_size=(2, 2)))
 		# self.model.add(Dropout(0.25))
@@ -67,12 +84,12 @@ class Model():
 					train_data[1],
 					initial_epoch=self.start_epoch,
 					validation_split=0.8,
-					epochs=1000, 
-					batch_size=50,
-					verbose=2,
+					epochs=10000, 
+					batch_size=500,
+					verbose=1,
 					callbacks=[saved])
 
-	def predict(self,file_names, classes_names):
+	def predict(self,file_names, classes_names, whole = False):
 		from audio import load_and_preprocess_audio
 		x = []
 		for fname in file_names:
@@ -80,5 +97,15 @@ class Model():
 		y=self.model.predict(np.array(x))
 		results = []
 		for _y in y:
-			results.append(classes_names[ np.argmax(_y) ] )
+			_ind = np.argmax(_y)
+			_max = np.max(_y)
+			assert _max == _y[_ind]
+			assert abs(np.sum(_y) - 1.0)<1e-5
+			whole = []
+			for j in range(len(_y)):
+				whole.append((classes_names[j], _y[j] ))
+			if whole:
+				results.append(whole)
+			else:
+				results.append((classes_names[_ind  ],_max) )
 		return results
